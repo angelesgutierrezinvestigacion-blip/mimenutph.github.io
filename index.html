@@ -1,0 +1,659 @@
+                
+ 
+             
+          
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi menú TPH</title>
+
+<link rel="manifest" href="manifest.json">
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-50">
+
+<!-- CABECERA -->
+<header class="bg-green-800 text-white p-4">
+<div class="max-w-5xl mx-auto flex gap-4 items-center">
+<img src="logoTPH.png" class="h-14">
+<div>
+<h1 class="font-bold text-lg">Unidad de Hematología</h1>
+<p>Hospital de Jerez</p>
+</div>
+</div>
+</header>
+
+<main class="max-w-5xl mx-auto p-4">
+
+<h2 class="text-xl text-green-700 font-bold text-center mt-3">
+Tu alimentación es parte de tu tratamiento
+</h2>
+
+<!-- CONTROLES -->
+<section class="bg-white rounded-xl p-4 mt-4">
+
+<div class="grid md:grid-cols-3 gap-4">
+
+<!-- FASE -->
+<div>
+<label class="font-bold">Fase</label>
+<select id="phase" class="w-full border p-2 rounded">
+<option value="pre">Pre-TPH</option>
+<option value="neutro" selected>Neutropenia</option>
+<option value="recu">Recuperación</option>
+<option value="largo">Largo plazo</option>
+</select>
+</div>
+
+<!-- SINTOMAS -->
+<div>
+<label class="font-bold">Síntomas</label>
+<div>
+<label><input id="sxNausea" type="checkbox"> Náuseas</label><br>
+<label><input id="sxMucositis" type="checkbox"> Mucositis</label><br>
+<label><input id="sxAppetite" type="checkbox"> Poco apetito</label>
+</div>
+</div>
+
+<!-- ACCIONES -->
+<div>
+<button onclick="generateMenu()" class="bg-green-600 text-white w-full p-3 rounded">
+Generar menú semanal
+</button>
+
+<button onclick="printMenu()" class="bg-blue-600 text-white w-full mt-2 p-2 rounded">
+Imprimir menú
+</button>
+
+<button onclick="clearTable()" class="border w-full mt-2 p-2 rounded">
+Limpiar
+</button>
+<button class="btn btn-secondary" onclick="printTracking()">📄 Informe para consulta</button>
+
+</div>
+
+</div>
+</section>
+
+<!-- FAVORITOS -->
+<section class="bg-white rounded-xl p-4 mt-4">
+<h3 class="font-bold mb-2">Favoritos</h3>
+<div class="grid grid-cols-3 gap-2">
+<button onclick="saveFav()" class="bg-yellow-100 p-2 rounded">⭐ Guardar</button>
+<button onclick="loadFav()" class="bg-blue-100 p-2 rounded">📂 Cargar</button>
+<button onclick="clearFav()" class="bg-red-100 p-2 rounded">🗑️ Borrar</button>
+</div>
+<!-- RECORDATORIOS -->
+<section class="card mt-6 p-4 sm:p-5 no-print">
+  <h3 class="text-lg font-extrabold text-gray-900">⏰ Recordatorios</h3>
+  <p class="help mt-1">Activa avisos para ayudarte a mantener la alimentación.</p>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+    <label><input type="checkbox" id="remBreakfast"> Desayuno</label>
+    <label><input type="checkbox" id="remLunch"> Comida</label>
+    <label><input type="checkbox" id="remSnack"> Merienda</label>
+    <label><input type="checkbox" id="remDinner"> Cena</label>
+    <label><input type="checkbox" id="remWater"> Hidratación</label>
+  </div>
+<div class="mt-4">
+  <h4 class="font-bold text-gray-800">Horarios</h4>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+    <label>Desayuno <input type="time" id="timeBreakfast"></label>
+    <label>Comida <input type="time" id="timeLunch"></label>
+    <label>Merienda <input type="time" id="timeSnack"></label>
+    <label>Cena <input type="time" id="timeDinner"></label>
+    <label>Hidratación <input type="time" id="timeWater"></label>
+  </div>
+</div>
+
+  <div class="mt-3">
+    <button class="btn btn-ghost" onclick="saveReminders(); toast('Guardado');">Guardar recordatorios</button>
+<button class="btn btn-secondary mt-2" onclick="activarNotificaciones()">Activar notificaciones</button>
+</div>
+</section>
+
+<!-- ALERGIAS -->
+<section class="bg-white rounded-xl p-4 mt-4">
+<h3 class="font-bold">Alergias</h3>
+
+<label><input id="allergyGluten" type="checkbox"> Gluten</label>
+<label><input id="allergyLactose" type="checkbox"> Lactosa</label>
+<label><input id="allergyFish" type="checkbox"> Pescado</label>
+<label><input id="allergyEgg" type="checkbox"> Huevo</label>
+<label><input id="allergyNuts" type="checkbox"> Frutos secos</label>
+</section>
+
+<!-- TABLA -->
+<section class="bg-white rounded-xl p-4 mt-4">
+<table class="w-full border text-center">
+<thead class="bg-green-700 text-white">
+<tr>
+<th>Día</th>
+<th>L</th>
+<th>M</th>
+<th>X</th>
+<th>J</th>
+<th>V</th>
+<th>S</th>
+<th>D</th>
+</tr>
+</thead>
+<tbody>
+<tr class="bg-green-50">
+<td class="font-bold">Desayuno</td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td>
+</tr>
+
+<tr class="bg-blue-50">
+<td class="font-bold">Comida 1</td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td>
+</tr>
+
+<tr class="bg-blue-100">
+<td class="font-bold">Comida 2</td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td>
+</tr>
+
+<tr class="bg-yellow-50">
+<td class="font-bold">Merienda</td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td>
+</tr>
+
+<tr class="bg-purple-50">
+<td class="font-bold">Cena 1</td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td>
+</tr>
+
+<tr class="bg-purple-100">
+<td class="font-bold">Cena 2</td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td>
+<td contenteditable></td><td contenteditable></td><td contenteditable></td><td contenteditable></td>
+</tr>
+</tbody>
+
+</table>
+</section>
+<!-- ALIMENTOS PROHIBIDOS -->
+<section class="card mt-6 p-4 sm:p-5">
+  <h3 class="text-lg font-extrabold text-red-700">Alimentos prohibidos durante TPH</h3>
+
+  <ul class="list-disc list-inside mt-2 text-gray-700">
+    <li>Quesos blandos y azules.</li>
+    <li>Huevos crudos o poco cocinados.</li>
+    <li>Leche o zumos no pasteurizados.</li>
+    <li>Pan no envasado.</li>
+    <li>Embutidos y patés no enlatados.</li>
+    <li>Almejas, moluscos y similares.</li>
+    <li>Vegetales crudos.</li>
+    <li>Frutos secos crudos (solo fritos u horneados).</li>
+    <li>Especias no cocinadas.</li>
+    <li>Helados caseros.</li>
+  </ul>
+</section>
+
+<!-- SEGUIMIENTO NUTRICIONAL -->
+<section class="card mt-6 p-4 sm:p-5">
+  <h3 class="text-lg font-extrabold text-gray-900">Seguimiento nutricional</h3>
+  <p class="help mt-1">Registra tus datos para compartirlos en consulta.</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+    <input id="trackDate" type="date" class="border rounded p-2">
+    <input id="trackWeight" type="number" step="0.1" placeholder="Peso (kg)" class="border rounded p-2">
+    
+    <select id="trackAppetite" class="border rounded p-2">
+      <option value="">Apetito</option>
+      <option>Bajo</option>
+      <option>Normal</option>
+      <option>Alto</option>
+    </select>
+
+    <select id="trackSymptoms" class="border rounded p-2">
+      <option value="">Síntomas</option>
+      <option>Náuseas</option>
+      <option>Mucositis</option>
+      <option>Fatiga</option>
+      <option>Sin síntomas</option>
+    </select>
+  </div>
+
+  <textarea id="trackNotes" class="border rounded p-2 w-full mt-3"
+    placeholder="Observaciones..."></textarea>
+
+  <div class="flex gap-2 mt-3">
+    <button class="btn btn-primary" onclick="saveTracking()">Guardar registro</button>
+    <button class="btn btn-ghost" onclick="loadTracking()">Ver registros</button>
+  </div>
+
+  <div id="trackingList" class="mt-4 text-sm"></div>
+</section>
+<!-- NORMAS DE SEGURIDAD ALIMENTARIA -->
+<section class="card mt-6 p-4 sm:p-5">
+  <h3 class="text-lg font-extrabold text-green-700">Normas básicas de seguridad alimentaria</h3>
+
+  <ul class="list-disc list-inside mt-3 text-gray-700 space-y-1">
+    <li>No consumir verduras crudas.</li>
+
+    <li>Frutas permitidas: solo frutas con piel. 
+    Deben lavarse cuidadosamente antes de pelarlas.</li>
+
+    <li>Se permiten yogures y leche siempre pasteurizados. 
+    Una vez abiertos, deben consumirse inmediatamente y no guardarse.</li>
+
+    <li>Embutidos crudos: congelar antes de consumir. 
+    Tanto los crudos como los cocidos deben consumirse recién abierto el envase y desechar el resto.</li>
+
+    <li>Panadería y repostería: solo productos envasados.</li>
+
+    <li>Agua: siempre embotellada o filtrada.</li>
+  </ul>
+</section>
+
+<!-- CONTACTO -->
+<section class="card mt-6 p-4 sm:p-5">
+  <h3 class="text-lg font-extrabold text-gray-900">Contacto</h3>
+  <p class="mt-2 text-gray-700">
+    Si tienes dudas o síntomas relacionados con la alimentación durante el tratamiento,
+    contacta atraves del correo adjunto:
+  </p>
+
+  <div class="mt-3">
+    <a href="mailto:nutricionhematologia@gmail.com"
+       class="btn btn-ghost">
+       📧 nutricionhematologia@gmail.com
+    </a>
+  </div>
+
+  <p class="help mt-2">
+    Responderemos lo antes posible en horario laboral.
+  </p>
+</section>
+
+</main>
+<!-- AVISO LEGAL -->
+<div id="legalModal" class="fixed inset-0 flex items-center justify-center p-4" 
+     style="display:none; background: rgba(0,0,0,0.75); z-index:9999;">
+<div class="bg-white rounded-xl shadow-xl p-6 max-w-lg w-full border-2 border-green-700">
+      <h3 class="text-lg font-extrabold">Aviso importante</h3>
+
+    <p class="help mt-2">
+      Esta herramienta es orientativa y no sustituye la valoración médica ni nutricional individual.
+      Cumple recomendaciones de seguridad alimentaria en pacientes con trasplante de progenitores hematopoyéticos.
+
+      Se recomienda:
+      • Seguridad alimentaria estricta.
+      • Higiene alimentaria.
+      • Evitar alimentos crudos, no pasteurizados o de riesgo.
+      • Seguir siempre las indicaciones de su equipo sanitario.
+
+      Ante síntomas o dudas, contacte con su unidad de referencia.
+    </p>
+
+    <div class="mt-4 flex justify-end gap-2">
+      <button class="btn btn-ghost" onclick="closeLegal(false)">Salir</button>
+      <button class="btn btn-primary" onclick="closeLegal(true)">He leído y acepto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const breakfasts=[
+"🥣 Avena con plátano",
+"🥛 Leche pasteurizada + cereales",
+"🍞 Tostada envasada + aceite",
+"🍯 Yogur pasteurizado + compota"
+];
+
+const lunches=[
+"🍗 Pollo guisado + arroz",
+"🐟 Pescado al horno + patata",
+"🍝 Pasta con pavo",
+"🍲 Lentejas guisadas"
+];
+
+const snacks=[
+"🍮 Natillas pasteurizadas",
+"🍌 Plátano (pelado)",
+"🍏 Compota de manzana"
+];
+
+const dinners=[
+"🥣 Puré de verduras + pavo",
+"🐟 Pescado al vapor",
+"🍗 Pollo al horno",
+"🍚 Arroz blanco"
+];
+// MENÚS ADAPTATIVOS
+
+// MENÚS ADAPTATIVOS
+const menusClinicos = {
+
+  hipercalorico: {
+    breakfasts: ["🥣 Avena + leche enriquecida", "🍌 Batido hipercalórico"],
+    lunches: ["🍗 Pollo + arroz + aceite", "🍝 Pasta con pavo y queso pasteurizado"],
+    snacks: ["🍮 Natillas", "🥛 Suplemento nutricional"],
+    dinners: ["🥣 Puré + carne triturada", "🍚 Arroz con huevo cocido"]
+  },
+
+  mucositis: {
+    breakfasts: ["🥣 Papilla de avena", "🍌 Puré de plátano"],
+    lunches: ["🥣 Puré de verduras", "🍗 Carne triturada"],
+    snacks: ["🍮 Natillas frías"],
+    dinners: ["🥣 Cremas suaves"]
+  },
+
+  nauseas: {
+    breakfasts: ["🍞 Tostada seca", "🍌 Plátano"],
+    lunches: ["🍚 Arroz blanco", "🍗 Pollo hervido"],
+    snacks: ["🍏 Compota"],
+    dinners: ["🥣 Puré suave"]
+  }
+};
+
+ const proteinas = [
+  "🍗 Pollo al horno",
+  "🐟 Pescado al vapor",
+  "🍳 Huevo cocido",
+  "🥩 Carne magra",
+  "🍗 Pavo",
+  "🐟 Merluza",
+  "🍗 Pollo triturado",
+  "🥩 Albóndigas caseras"
+];
+// PROTEÍNAS SEGÚN SÍNTOMAS
+const proteinasMucositis = [
+  "🍗 Pollo triturado",
+  "🐟 Pescado triturado",
+  "🥩 Carne picada",
+  "🍳 Huevo revuelto",
+  "🍗 Albóndigas blandas"
+];
+
+const proteinasNauseas = [
+  "🍗 Pollo hervido",
+  "🐟 Pescado blanco",
+  "🍳 Huevo cocido",
+  "🍗 Pavo",
+  "🥩 Carne magra suave"
+];
+function setCell(r,d,t){
+document.querySelectorAll("tbody tr")[r].children[d].innerText=t;
+}
+function generateMenu(){
+
+  const mucositis = document.getElementById("sxMucositis").checked;
+  const nausea = document.getElementById("sxNausea").checked;
+
+  let tipo = "normal";
+
+  if(mucositis) tipo = "mucositis";
+  else if(nausea) tipo = "nauseas";
+
+  let menu = menusClinicos[tipo] || {
+    breakfasts, lunches, snacks, dinners
+  };
+// Selección adaptativa de proteína
+let listaProteinas = proteinas;
+
+if(mucositis) listaProteinas = proteinasMucositis;
+else if(nausea) listaProteinas = proteinasNauseas;
+  for(let d=1; d<=7; d++){
+
+    // Desayuno
+    setCell(0,d,menu.breakfasts[Math.random()*menu.breakfasts.length|0]);
+
+    // Comida primer plato
+    setCell(1,d,menu.lunches[Math.random()*menu.lunches.length|0]);
+
+    // Comida segundo plato (PROTEÍNA)
+setCell(2,d,listaProteinas[Math.random()*listaProteinas.length|0]);
+    // Merienda
+    setCell(3,d,menu.snacks[Math.random()*menu.snacks.length|0]);
+
+    // Cena primer plato
+    setCell(4,d,menu.dinners[Math.random()*menu.dinners.length|0]);
+
+    // Cena segundo plato (PROTEÍNA)
+setCell(5,d,listaProteinas[Math.random()*listaProteinas.length|0]);
+  }
+
+  alert("Menú clínico adaptado generado");
+}
+
+function clearTable(){
+document.querySelectorAll("td[contenteditable]").forEach(e=>e.innerText="");
+}
+
+function printMenu(){window.print();}
+
+// FAVORITOS
+function getMenu(){
+return [...document.querySelectorAll("tbody tr")]
+.map(tr=>[...tr.children].slice(1).map(td=>td.innerText));
+}
+
+function setMenu(data){
+document.querySelectorAll("tbody tr").forEach((tr,i)=>{
+[...tr.children].slice(1).forEach((td,j)=>{
+td.innerText=data[i][j];
+});
+});
+}
+
+function saveFav(){
+localStorage.setItem("fav",JSON.stringify(getMenu()));
+alert("Guardado");
+}
+
+function loadFav(){
+let d=localStorage.getItem("fav");
+if(!d) return alert("No hay favoritos");
+setMenu(JSON.parse(d));
+}
+
+function clearFav(){
+localStorage.removeItem("fav");
+alert("Borrado");
+}
+/* =====================
+   RECORDATORIOS
+===================== */
+
+const REMINDER_KEY = "mi_menu_tph_reminders";
+
+function saveReminders(){
+  const data = {
+    breakfast: document.getElementById('remBreakfast').checked,
+    lunch: document.getElementById('remLunch').checked,
+    snack: document.getElementById('remSnack').checked,
+    dinner: document.getElementById('remDinner').checked,
+    water: document.getElementById('remWater').checked,
+
+    timeBreakfast: document.getElementById('timeBreakfast').value,
+    timeLunch: document.getElementById('timeLunch').value,
+    timeSnack: document.getElementById('timeSnack').value,
+    timeDinner: document.getElementById('timeDinner').value,
+    timeWater: document.getElementById('timeWater').value
+  };
+
+  localStorage.setItem(REMINDER_KEY, JSON.stringify(data));
+  toast("Recordatorios guardados.");
+}
+function loadReminders(){
+  const data = localStorage.getItem(REMINDER_KEY);
+  if(!data) return;
+
+  const r = JSON.parse(data);
+
+  document.getElementById('remBreakfast').checked = r.breakfast;
+  document.getElementById('remLunch').checked = r.lunch;
+  document.getElementById('remSnack').checked = r.snack;
+  document.getElementById('remDinner').checked = r.dinner;
+  document.getElementById('remWater').checked = r.water;
+
+  document.getElementById('timeBreakfast').value = r.timeBreakfast || "";
+  document.getElementById('timeLunch').value = r.timeLunch || "";
+  document.getElementById('timeSnack').value = r.timeSnack || "";
+  document.getElementById('timeDinner').value = r.timeDinner || "";
+  document.getElementById('timeWater').value = r.timeWater || "";
+}
+
+
+window.addEventListener('load', () => {
+  maybeShowLegal();
+  loadReminders();
+});
+
+/* =====================
+   NOTIFICACIONES
+===================== */
+
+function activarNotificaciones(){
+  if (!("Notification" in window)){
+    alert("Este dispositivo no soporta notificaciones.");
+    return;
+  }
+
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted"){
+      toast("Notificaciones activadas.");
+      programarAvisos();
+    } else {
+      toast("Permiso denegado.");
+    }
+  });
+}
+
+function programarAvisos(){
+  const data = localStorage.getItem(REMINDER_KEY);
+  if (!data) return;
+
+  const r = JSON.parse(data);
+
+  // ejemplo simple: aviso cada 3 horas si hidratación activada
+  if (r.water){
+    setInterval(() => {
+      new Notification("💧 Hidratación", {
+        body: "Recuerda beber agua."
+      });
+    }, 3 * 60 * 60 * 1000);
+  }
+}
+// Toast visual
+function toast(msg){
+  const t = document.createElement("div");
+  t.innerText = msg;
+  t.style.position = "fixed";
+  t.style.bottom = "20px";
+  t.style.left = "50%";
+  t.style.transform = "translateX(-50%)";
+  t.style.background = "#111";
+  t.style.color = "#fff";
+  t.style.padding = "10px 20px";
+  t.style.borderRadius = "10px";
+  t.style.zIndex = 9999;
+  document.body.appendChild(t);
+
+  setTimeout(()=>t.remove(),2500);
+}
+// ===========================
+// Seguimiento nutricional
+// ===========================
+const TRACK_KEY = 'mi_menu_tph_tracking_v1';
+
+function saveTracking(){
+  const entry = {
+    date: document.getElementById('trackDate').value,
+    weight: document.getElementById('trackWeight').value,
+    appetite: document.getElementById('trackAppetite').value,
+    symptoms: document.getElementById('trackSymptoms').value,
+    notes: document.getElementById('trackNotes').value
+  };
+
+  if(!entry.date){
+    toast("Introduce la fecha.");
+    return;
+  }
+
+  const data = JSON.parse(localStorage.getItem(TRACK_KEY) || "[]");
+  data.push(entry);
+  localStorage.setItem(TRACK_KEY, JSON.stringify(data));
+
+  toast("Registro guardado.");
+}
+
+function loadTracking(){
+  const data = JSON.parse(localStorage.getItem(TRACK_KEY) || "[]");
+
+  if(!data.length){
+    document.getElementById('trackingList').innerHTML = "No hay registros.";
+    return;
+  }
+
+  let html = "";
+  data.forEach(e => {
+    html += `
+      <div class="border p-2 rounded mt-2">
+        <strong>${e.date}</strong> |
+        Peso: ${e.weight || "-"} kg |
+        Apetito: ${e.appetite || "-"} |
+        Síntomas: ${e.symptoms || "-"}
+        <br>${e.notes || ""}
+      </div>
+    `;
+  });
+
+  document.getElementById('trackingList').innerHTML = html;
+}
+function printTracking(){
+  loadTracking();
+  window.print();
+}
+// ===========================
+// Aviso legal solo primera vez
+// ===========================
+const LEGAL_KEY = 'mi_menu_tph_legal_ok';
+
+const avisosFase = {
+  pre: "Preparación nutricional antes del trasplante.",
+  neutro: "Evite alimentos crudos. Seguridad alimentaria estricta.",
+  recu: "Reintroducción progresiva de alimentos.",
+  largo: "Dieta equilibrada y prevención de complicaciones."
+};
+
+function maybeShowLegal(){
+  const ok = localStorage.getItem(LEGAL_KEY);
+  if (!ok){
+    const fase = document.getElementById("phase").value;
+    document.querySelector("#legalModal .help").innerText =
+      avisosFase[fase] || "Recomendaciones generales.";
+    document.getElementById('legalModal').style.display = 'flex';
+  }
+
+}
+
+function closeLegal(accepted){
+  if (accepted){
+    localStorage.setItem(LEGAL_KEY, '1');
+  }
+  document.getElementById('legalModal').style.display = 'none';
+}
+
+</script>
+
+</body>
+</html>
