@@ -16,19 +16,48 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"><style>
+html {
+  scroll-behavior: smooth;
+}
+  :root{ --brand:#166534; --brand2:#1d4ed8; }
+  .card{ background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 6px 18px rgba(17,24,39,.06); }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border-radius:14px; padding:.65rem 1rem; font-weight:700; }
+  .btn-primary{ background:var(--brand); color:#fff; }
+  .btn-primary:hover{ filter:brightness(.95); }
+  .btn-secondary{ background:var(--brand2); color:#fff; }
+  .btn-ghost{ background:#f3f4f6; }
+  .help{ color:#6b7280; font-size:.95rem; line-height:1.35rem; }
+
+  /* Modo oscuro */
+.dark body{ background:#0b1220; }
+    .dark .card, .dark section.bg-white{ background:#0f172a; border-color:#243043; }
+    .dark .help, .dark p, .dark li, .dark label, .dark h2, .dark h3, .dark td, .dark th{ color:#e5e7eb; }
+    .dark .btn-ghost{ background:#111827; }
+    .dark table{ color:#e5e7eb; }
+    .dark thead{ background:#064e3b !important; }
+  </style>
+  </head>
 
 <body class="bg-gray-50">
 
 <!-- CABECERA -->
 <header class="bg-green-800 text-white p-4">
 <div class="max-w-5xl mx-auto flex gap-4 items-center">
+
 <img src="logoTPH.png" class="h-14">
+
 <div>
 <h1 class="font-bold text-lg">Unidad de Hematología</h1>
 <p>Hospital de Jerez</p>
 </div>
+
+<!-- 🔽 BOTÓN MODO OSCURO -->
+<div class="ml-auto">
+  <button class="btn btn-ghost" onclick="toggleTheme()" title="Modo oscuro">🌙</button>
+</div>
+<!-- 🔼 FIN BOTÓN -->
+
 </div>
 </header>
 
@@ -39,8 +68,8 @@ Tu alimentación es parte de tu tratamiento
 </h2>
 
 <!-- CONTROLES -->
-<section class="bg-white rounded-xl p-4 mt-4">
 
+<section id="menu" class="bg-white p-4 rounded shadow">
 <div class="grid md:grid-cols-3 gap-4">
 
 <!-- FASE -->
@@ -63,7 +92,16 @@ Tu alimentación es parte de tu tratamiento
 <label><input id="sxAppetite" type="checkbox"> Poco apetito</label>
 </div>
 </div>
+<!-- RIESGO NUTRICIONAL -->
+<div id="riskBox" class="mt-4 p-4 rounded-xl border bg-green-50 border-green-300">
+  <h3 id="riskTitle" class="font-bold text-green-800">
+    🟢 Riesgo nutricional bajo
+  </h3>
 
+  <p id="riskReason" class="text-sm text-gray-700 mt-1">
+    Sin factores de riesgo detectados.
+  </p>
+</div>
 <!-- ACCIONES -->
 <div>
 <button onclick="generateMenu()" class="bg-green-600 text-white w-full p-3 rounded">
@@ -112,8 +150,11 @@ Limpiar
     <label>Comida <input type="time" id="timeLunch"></label>
     <label>Merienda <input type="time" id="timeSnack"></label>
     <label>Cena <input type="time" id="timeDinner"></label>
-    <label>Hidratación <input type="time" id="timeWater"></label>
-  </div>
+<label>Hidratación 1 <input type="time" id="timeWater1"></label>
+<label>Hidratación 2 <input type="time" id="timeWater2"></label>
+<label>Hidratación 3 <input type="time" id="timeWater3"></label>
+
+     </div>
 </div>
 
   <div class="mt-3">
@@ -189,7 +230,7 @@ Limpiar
 </table>
 </section>
 <!-- ALIMENTOS PROHIBIDOS -->
-<section class="card mt-6 p-4 sm:p-5">
+<section id="educacion" class="card mt-6 p-4 sm:p-5">
   <h3 class="text-lg font-extrabold text-red-700">Alimentos prohibidos durante TPH</h3>
 
   <ul class="list-disc list-inside mt-2 text-gray-700">
@@ -207,7 +248,7 @@ Limpiar
 </section>
 
 <!-- SEGUIMIENTO NUTRICIONAL -->
-<section class="card mt-6 p-4 sm:p-5">
+<section id="seguimiento" class="card mt-6 p-4 sm:p-5">
   <h3 class="text-lg font-extrabold text-gray-900">Seguimiento nutricional</h3>
   <p class="help mt-1">Registra tus datos para compartirlos en consulta.</p>
 
@@ -262,9 +303,23 @@ Limpiar
     <li>Agua: siempre embotellada o filtrada.</li>
   </ul>
 </section>
+<section class="card mt-6 p-4 sm:p-5" id="privacidad">
+  <h3 class="text-lg font-extrabold text-gray-900">🔒 Privacidad y datos</h3>
+  <p class="help mt-1">
+    Esta app guarda datos <strong>solo en este dispositivo</strong> (navegador/móvil). No enviamos información a servidores.
+    Evita introducir nombre/apellidos u otros identificadores.
+  </p>
 
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+    <button class="btn btn-secondary" onclick="exportData()">⬇️ Exportar</button>
+    <label class="btn btn-ghost cursor-pointer">
+      ⬆️ Importar <input type="file" id="importFile" accept="application/json" class="hidden" onchange="importData(event)">
+    </label>
+    <button class="btn btn-ghost" onclick="deleteAllData()">🗑️ Borrar todo</button>
+  </div>
+</section>
 <!-- CONTACTO -->
-<section class="card mt-6 p-4 sm:p-5">
+<section id="contacto" class="card mt-6 p-4 sm:p-5">
   <h3 class="text-lg font-extrabold text-gray-900">Contacto</h3>
   <p class="mt-2 text-gray-700">
     Si tienes dudas o síntomas relacionados con la alimentación durante el tratamiento,
@@ -391,48 +446,85 @@ const proteinasNauseas = [
   "🥩 Carne magra suave"
 ];
 function setCell(r,d,t){
-document.querySelectorAll("tbody tr")[r].children[d].innerText=t;
+ document.querySelectorAll("tbody tr")[r].children[d].innerText = t;
 }
-function generateMenu(){
+function computeClinicalProfile(){
 
   const mucositis = document.getElementById("sxMucositis").checked;
   const nausea = document.getElementById("sxNausea").checked;
+  const lowApp = document.getElementById("sxAppetite").checked;
 
   let tipo = "normal";
-
   if(mucositis) tipo = "mucositis";
   else if(nausea) tipo = "nauseas";
+  else if(lowApp) tipo = "hipercalorico";
 
-  let menu = menusClinicos[tipo] || {
-    breakfasts, lunches, snacks, dinners
+  return {
+    tipo,
+    mucositis,
+    nausea,
+    lowApp,
+    risk: lowApp ? "alto" : "normal"
   };
-// Selección adaptativa de proteína
-let listaProteinas = proteinas;
+}
 
-if(mucositis) listaProteinas = proteinasMucositis;
-else if(nausea) listaProteinas = proteinasNauseas;
-  for(let d=1; d<=7; d++){
+function generateMenu(){
+  const profile = computeClinicalProfile();
+actualizarRiesgoNutricional();
 
-    // Desayuno
-    setCell(0,d,menu.breakfasts[Math.random()*menu.breakfasts.length|0]);
 
-    // Comida primer plato
-    setCell(1,d,menu.lunches[Math.random()*menu.lunches.length|0]);
+  // Menú base según perfil
+  const menu = menusClinicos[profile.tipo] || { breakfasts, lunches, snacks, dinners };
 
-    // Comida segundo plato (PROTEÍNA)
-setCell(2,d,listaProteinas[Math.random()*listaProteinas.length|0]);
-    // Merienda
-    setCell(3,d,menu.snacks[Math.random()*menu.snacks.length|0]);
+  // Proteínas adaptadas
+  let listaProteinas = proteinas;
+  if(profile.mucositis) listaProteinas = proteinasMucositis;
+  else if(profile.nausea) listaProteinas = proteinasNauseas;
 
-    // Cena primer plato
-    setCell(4,d,menu.dinners[Math.random()*menu.dinners.length|0]);
-
-    // Cena segundo plato (PROTEÍNA)
-setCell(5,d,listaProteinas[Math.random()*listaProteinas.length|0]);
+  // Aviso de riesgo (no bloquea)
+  if(profile.risk === "alto"){
+    toast("⚠️ Perfil con riesgo nutricional: menú adaptado. Si empeoras, consulta con tu unidad.");
   }
 
-  alert("Menú clínico adaptado generado");
+let usedBreakfast = [];
+let usedLunch = [];
+let usedSnack = [];
+let usedDinner = [];
+
+for(let d=1; d<=7; d++){
+
+  // DESAYUNO
+  const breakfast = pickWeekly(menu.breakfasts, usedBreakfast);
+  setCell(0,d,breakfast);
+
+  // COMIDA PRIMER PLATO
+  const lunch = pickWeekly(menu.lunches, usedLunch);
+  setCell(1,d,lunch);
+
+  // COMIDA SEGUNDO
+  const proteinLunch = listaProteinas[Math.random()*listaProteinas.length|0];
+  setCell(2,d,proteinLunch);
+
+  // MERIENDA
+  const snack = pickWeekly(menu.snacks, usedSnack);
+  setCell(3,d,snack);
+
+  // CENA PRIMER PLATO (no repetir con comida)
+  let dinner;
+  do{
+    dinner = pickWeekly(menu.dinners, usedDinner);
+  } while(dinner === lunch);
+
+  setCell(4,d,dinner);
+
+  // CENA SEGUNDO
+  const proteinDinner = listaProteinas[Math.random()*listaProteinas.length|0];
+  setCell(5,d,proteinDinner);
 }
+
+alert("Menú clínico adaptado generado");
+
+  }
 
 function clearTable(){
 document.querySelectorAll("td[contenteditable]").forEach(e=>e.innerText="");
@@ -487,8 +579,10 @@ function saveReminders(){
     timeLunch: document.getElementById('timeLunch').value,
     timeSnack: document.getElementById('timeSnack').value,
     timeDinner: document.getElementById('timeDinner').value,
-    timeWater: document.getElementById('timeWater').value
-  };
+timeWater1: document.getElementById('timeWater1').value,
+timeWater2: document.getElementById('timeWater2').value,
+timeWater3: document.getElementById('timeWater3').value
+      };
 
   localStorage.setItem(REMINDER_KEY, JSON.stringify(data));
   toast("Recordatorios guardados.");
@@ -509,8 +603,10 @@ function loadReminders(){
   document.getElementById('timeLunch').value = r.timeLunch || "";
   document.getElementById('timeSnack').value = r.timeSnack || "";
   document.getElementById('timeDinner').value = r.timeDinner || "";
-  document.getElementById('timeWater').value = r.timeWater || "";
-}
+document.getElementById('timeWater1').value = r.timeWater1 || "";
+document.getElementById('timeWater2').value = r.timeWater2 || "";
+document.getElementById('timeWater3').value = r.timeWater3 || "";
+  }
 
 
 window.addEventListener('load', () => {
@@ -530,6 +626,7 @@ function activarNotificaciones(){
 
   Notification.requestPermission().then(permission => {
     if (permission === "granted"){
+      loadReminders();
       toast("Notificaciones activadas.");
       programarAvisos();
     } else {
@@ -537,23 +634,62 @@ function activarNotificaciones(){
     }
   });
 }
-
 function programarAvisos(){
-  const data = localStorage.getItem(REMINDER_KEY);
-  if (!data) return;
+  const data = JSON.parse(localStorage.getItem(REMINDER_KEY) || "{}");
+  if(!data) return;
 
-  const r = JSON.parse(data);
+  let ultimaMarca = "";
 
-  // ejemplo simple: aviso cada 3 horas si hidratación activada
-  if (r.water){
-    setInterval(() => {
-      new Notification("💧 Hidratación", {
-        body: "Recuerda beber agua."
-      });
-    }, 3 * 60 * 60 * 1000);
-  }
+  setInterval(() => {
+    const now = new Date();
+    const hhmm = now.toTimeString().slice(0,5);
+    const marcaActual = now.toDateString() + " " + hhmm;
+
+    // evita repetir varias veces en el mismo minuto
+    if (ultimaMarca === marcaActual) return;
+
+    if(data.breakfast && data.timeBreakfast === hhmm){
+      new Notification("🍞 Desayuno", { body: "Hora del desayuno." });
+      ultimaMarca = marcaActual;
+    }
+
+    if(data.lunch && data.timeLunch === hhmm){
+      new Notification("🍽️ Comida", { body: "Hora de la comida." });
+      ultimaMarca = marcaActual;
+    }
+
+    if(data.snack && data.timeSnack === hhmm){
+      new Notification("🍎 Merienda", { body: "Hora de la merienda." });
+      ultimaMarca = marcaActual;
+    }
+
+    if(data.dinner && data.timeDinner === hhmm){
+      new Notification("🌙 Cena", { body: "Hora de la cena." });
+      ultimaMarca = marcaActual;
+    }
+
+   if(data.water && data.timeWater1 === hhmm){
+  new Notification("💧 Hidratación", { body: "Recuerda beber agua." });
+  ultimaMarca = marcaActual;
 }
-// Toast visual
+
+if(data.water && data.timeWater2 === hhmm){
+  new Notification("💧 Hidratación", { body: "Recuerda beber agua." });
+  ultimaMarca = marcaActual;
+}
+
+if(data.water && data.timeWater3 === hhmm){
+  new Notification("💧 Hidratación", { body: "Recuerda beber agua." });
+  ultimaMarca = marcaActual;
+}
+  }, 30000); // comprueba cada 30 segundos
+}
+
+// ===========================
+// Seguimiento nutricional
+// ===========================
+const TRACK_KEY = 'mi_menu_tph_tracking_v1';
+
 function toast(msg){
   const t = document.createElement("div");
   t.innerText = msg;
@@ -568,13 +704,8 @@ function toast(msg){
   t.style.zIndex = 9999;
   document.body.appendChild(t);
 
-  setTimeout(()=>t.remove(),2500);
+  setTimeout(() => t.remove(), 2500);
 }
-// ===========================
-// Seguimiento nutricional
-// ===========================
-const TRACK_KEY = 'mi_menu_tph_tracking_v1';
-
 function saveTracking(){
   const entry = {
     date: document.getElementById('trackDate').value,
@@ -652,8 +783,198 @@ function closeLegal(accepted){
   }
   document.getElementById('legalModal').style.display = 'none';
 }
+function toggleTheme(){
+  const root = document.documentElement;
+  root.classList.toggle('dark');
+  localStorage.setItem('theme_dark', root.classList.contains('dark') ? '1' : '0');
+}
 
+(function initTheme(){
+  if(localStorage.getItem('theme_dark')==='1'){
+    document.documentElement.classList.add('dark');
+  }
+})();
+function go(hash){
+  const el = document.querySelector(hash);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function exportData(){
+  const payload = {
+    v: 1,
+    when: new Date().toISOString(),
+    storage: {
+      fav: localStorage.getItem("fav"),
+      tracking: localStorage.getItem(TRACK_KEY),
+      reminders: localStorage.getItem(REMINDER_KEY),
+      legal: localStorage.getItem(LEGAL_KEY),
+      theme: localStorage.getItem('theme_dark')
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "mimenutph_datos.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Datos exportados.");
+}
+
+function importData(ev){
+  const file = ev.target.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      const s = data?.storage || {};
+      if(s.fav !== undefined) localStorage.setItem("fav", s.fav);
+      if(s.tracking !== undefined) localStorage.setItem(TRACK_KEY, s.tracking);
+      if(s.reminders !== undefined) localStorage.setItem(REMINDER_KEY, s.reminders);
+      if(s.legal !== undefined) localStorage.setItem(LEGAL_KEY, s.legal);
+      if(s.theme !== undefined) localStorage.setItem('theme_dark', s.theme);
+      toast("Datos importados. Recarga la página.");
+    }catch(e){
+      alert("Archivo no válido.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function deleteAllData(){
+  if(!confirm("¿Borrar todos los datos guardados en este dispositivo?")) return;
+  localStorage.removeItem("fav");
+  localStorage.removeItem(TRACK_KEY);
+  localStorage.removeItem(REMINDER_KEY);
+  localStorage.removeItem(LEGAL_KEY);
+  localStorage.removeItem('theme_dark');
+  clearTable();
+  toast("Datos borrados.");
+}
+function getTrackingData(){
+  try { return JSON.parse(localStorage.getItem(TRACK_KEY) || "[]"); }
+  catch { return []; }
+}
+
+function lastWeightAndTrend(days=14){
+  const data = getTrackingData()
+    .filter(e => e.date && e.weight)
+    .map(e => ({date: new Date(e.date), w: Number(e.weight)}))
+    .filter(e => !Number.isNaN(e.w))
+    .sort((a,b)=>a.date-b.date);
+
+  if(data.length < 2) return {last:null, changePct:null};
+
+  const last = data[data.length-1];
+  const cutoff = new Date(last.date); cutoff.setDate(cutoff.getDate()-days);
+  const past = data.find(e => e.date >= cutoff) || data[0];
+
+  const changePct = ((last.w - past.w) / past.w) * 100;
+  return {last:last.w, changePct};
+}
+
+function computeClinicalProfile(){
+  const mucositis = document.getElementById("sxMucositis").checked;
+  const nausea = document.getElementById("sxNausea").checked;
+  const lowApp = document.getElementById("sxAppetite").checked;
+  const phase = document.getElementById("phase").value;
+
+  const {changePct} = lastWeightAndTrend(14);
+  const weightLoss = (changePct !== null && changePct <= -5); // >5% en ~2 semanas
+
+  // Selección de estrategia (prioridad clínica)
+  let tipo = "normal";
+  if(mucositis) tipo = "mucositis";
+  else if(nausea) tipo = "nauseas";
+  else if(weightLoss || lowApp) tipo = "hipercalorico";
+
+  // Riesgo nutricional simple
+  const risk = (mucositis || nausea || weightLoss || lowApp) ? "alto" : "bajo";
+
+  return {phase, mucositis, nausea, lowApp, weightLoss, tipo, risk};
+}
+function pickDifferent(list, previous){
+  if(!list || list.length === 0) return "";
+  if(list.length === 1) return list[0];
+
+  let choice;
+  do {
+    choice = list[Math.random()*list.length|0];
+  } while(choice === previous);
+
+  return choice;
+}
+function actualizarRiesgoNutricional(){
+
+  const profile = computeClinicalProfile();
+
+  const box = document.getElementById("riskBox");
+  const title = document.getElementById("riskTitle");
+  const reason = document.getElementById("riskReason");
+
+  let motivos = [];
+
+  if(profile.mucositis) motivos.push("mucositis");
+  if(profile.nausea) motivos.push("náuseas");
+  if(profile.lowApp) motivos.push("poco apetito");
+  if(profile.weightLoss) motivos.push("pérdida de peso");
+
+  if(profile.risk === "alto"){
+
+    box.className =
+      "mt-4 p-4 rounded-xl border bg-red-50 border-red-300";
+
+    title.className =
+      "font-bold text-red-800";
+
+    title.innerHTML =
+      "🔴 Riesgo nutricional alto";
+
+    reason.innerHTML =
+      "Factores detectados: " +
+      motivos.join(", ") +
+      ". Menú adaptado automáticamente.";
+  }
+  else{
+
+    box.className =
+      "mt-4 p-4 rounded-xl border bg-green-50 border-green-300";
+
+    title.className =
+      "font-bold text-green-800";
+
+    title.innerHTML =
+      "🟢 Riesgo nutricional bajo";
+
+    reason.innerHTML =
+      "No se detectan factores de riesgo nutricional.";
+  }
+}
+function pickWeekly(list, used){
+  if(!list || list.length === 0) return "";
+
+  // Opciones no usadas
+  let options = list.filter(x => !used.includes(x));
+
+  // Si se acaban, reiniciar
+  if(options.length === 0){
+    used.length = 0;
+    options = list;
+  }
+
+  const choice = options[Math.random()*options.length|0];
+  used.push(choice);
+  return choice;
+}
 </script>
-
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t shadow-lg p-2 md:hidden" style="z-index:999;">
+  <div class="max-w-5xl mx-auto grid grid-cols-4 gap-2 text-center text-sm">
+    <button class="btn btn-ghost" onclick="go('#menu')">🍽️<span>Menú</span></button>
+    <button class="btn btn-ghost" onclick="go('#seguimiento')">📈<span>Seguim.</span></button>
+    <button class="btn btn-ghost" onclick="go('#educacion')">📚<span>Info</span></button>
+    <button class="btn btn-ghost" onclick="go('#contacto')">✉️<span>Contacto</span></button>
+  </div>
+</nav>
+<div class="h-20 md:hidden"></div>
 </body>
 </html>
+
