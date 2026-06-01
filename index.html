@@ -92,16 +92,6 @@ Tu alimentación es parte de tu tratamiento
 <label><input id="sxAppetite" type="checkbox"> Poco apetito</label>
 </div>
 </div>
-<!-- RIESGO NUTRICIONAL -->
-<div id="riskBox" class="mt-4 p-4 rounded-xl border bg-green-50 border-green-300">
-  <h3 id="riskTitle" class="font-bold text-green-800">
-    🟢 Riesgo nutricional bajo
-  </h3>
-
-  <p id="riskReason" class="text-sm text-gray-700 mt-1">
-    Sin factores de riesgo detectados.
-  </p>
-</div>
 <!-- ACCIONES -->
 <div>
 <button onclick="generateMenu()" class="bg-green-600 text-white w-full p-3 rounded">
@@ -120,6 +110,17 @@ Limpiar
 </div>
 
 </div>
+<!-- RIESGO NUTRICIONAL -->
+<div id="riskBox" class="mt-4 p-4 rounded-xl border bg-green-50 border-green-300">
+  <h3 id="riskTitle" class="font-bold text-green-800">
+    🟢 Riesgo nutricional bajo
+  </h3>
+
+  <p id="riskReason" class="text-sm text-gray-700 mt-1">
+    Sin factores de riesgo detectados.
+  </p>
+</div>
+
 </section>
 
 <!-- FAVORITOS -->
@@ -977,4 +978,3 @@ function pickWeekly(list, used){
 <div class="h-20 md:hidden"></div>
 </body>
 </html>
-
