@@ -161,6 +161,7 @@ Limpiar
   <div class="mt-3">
     <button class="btn btn-ghost" onclick="saveReminders(); toast('Guardado');">Guardar recordatorios</button>
 <button class="btn btn-secondary mt-2" onclick="activarNotificaciones()">Activar notificaciones</button>
+<button class="btn btn-ghost mt-2" onclick="probarNotificacion()">🔔 Probar notificación</button>
 </div>
 </section>
 
@@ -644,6 +645,29 @@ function activarNotificaciones(){
     }
   });
 }
+function enviarNotificacion(titulo, mensaje){
+  if(Notification.permission === "granted"){
+    new Notification(titulo, { body: mensaje });
+    toast(titulo + " - " + mensaje);
+  } else {
+    alert("Las notificaciones no están permitidas.");
+  }
+}
+
+function probarNotificacion(){
+  if (!("Notification" in window)){
+    alert("Este dispositivo no soporta notificaciones.");
+    return;
+  }
+
+  Notification.requestPermission().then(permission => {
+    if(permission === "granted"){
+      enviarNotificacion("🔔 Prueba Mi Menú TPH", "Las notificaciones funcionan correctamente.");
+    } else {
+      alert("Permiso de notificaciones denegado.");
+    }
+  });
+}
 function programarAvisos(){
   const data = JSON.parse(localStorage.getItem(REMINDER_KEY) || "{}");
   if(!data) return;
@@ -657,42 +681,42 @@ function programarAvisos(){
 
     // evita repetir varias veces en el mismo minuto
     if (ultimaMarca === marcaActual) return;
+if(data.breakfast && data.timeBreakfast === hhmm){
+  enviarNotificacion("🍞 Desayuno", "Hora del desayuno.");
+  ultimaMarca = marcaActual;
+}
 
-    if(data.breakfast && data.timeBreakfast === hhmm){
-      new Notification("🍞 Desayuno", { body: "Hora del desayuno." });
-      ultimaMarca = marcaActual;
-    }
+if(data.lunch && data.timeLunch === hhmm){
+  enviarNotificacion("🍽️ Comida", "Hora de la comida.");
+  ultimaMarca = marcaActual;
+}
 
-    if(data.lunch && data.timeLunch === hhmm){
-      new Notification("🍽️ Comida", { body: "Hora de la comida." });
-      ultimaMarca = marcaActual;
-    }
+if(data.snack && data.timeSnack === hhmm){
+  enviarNotificacion("🍎 Merienda", "Hora de la merienda.");
+  ultimaMarca = marcaActual;
+}
 
-    if(data.snack && data.timeSnack === hhmm){
-      new Notification("🍎 Merienda", { body: "Hora de la merienda." });
-      ultimaMarca = marcaActual;
-    }
+if(data.dinner && data.timeDinner === hhmm){
+  enviarNotificacion("🌙 Cena", "Hora de la cena.");
+  ultimaMarca = marcaActual;
+}
 
-    if(data.dinner && data.timeDinner === hhmm){
-      new Notification("🌙 Cena", { body: "Hora de la cena." });
-      ultimaMarca = marcaActual;
-    }
-
-   if(data.water && data.timeWater1 === hhmm){
-  new Notification("💧 Hidratación", { body: "Recuerda beber agua." });
+if(data.water && data.timeWater1 === hhmm){
+  enviarNotificacion("💧 Hidratación", "Recuerda beber agua.");
   ultimaMarca = marcaActual;
 }
 
 if(data.water && data.timeWater2 === hhmm){
-  new Notification("💧 Hidratación", { body: "Recuerda beber agua." });
+  enviarNotificacion("💧 Hidratación", "Recuerda beber agua.");
   ultimaMarca = marcaActual;
 }
 
 if(data.water && data.timeWater3 === hhmm){
-  new Notification("💧 Hidratación", { body: "Recuerda beber agua." });
+  enviarNotificacion("💧 Hidratación", "Recuerda beber agua.");
   ultimaMarca = marcaActual;
 }
-  }, 30000); // comprueba cada 30 segundos
+
+      }, 30000); // comprueba cada 30 segundos
 }
 
 // ===========================
