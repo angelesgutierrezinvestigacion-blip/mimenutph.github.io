@@ -450,24 +450,33 @@ function setCell(r,d,t){
  document.querySelectorAll("tbody tr")[r].children[d].innerText = t;
 }
 function computeClinicalProfile(){
-
   const mucositis = document.getElementById("sxMucositis").checked;
   const nausea = document.getElementById("sxNausea").checked;
   const lowApp = document.getElementById("sxAppetite").checked;
+  const phase = document.getElementById("phase").value;
+
+  const {changePct} = lastWeightAndTrend(14);
+  const weightLoss = (changePct !== null && changePct <= -5);
+
+  let puntos = 0;
+
+  if(nausea) puntos += 1;
+  if(lowApp) puntos += 1;
+  if(mucositis) puntos += 2;
+  if(weightLoss) puntos += 3;
+
+  let risk = "bajo";
+  if(puntos >= 3) risk = "alto";
+  else if(puntos >= 1) risk = "moderado";
 
   let tipo = "normal";
   if(mucositis) tipo = "mucositis";
   else if(nausea) tipo = "nauseas";
-  else if(lowApp) tipo = "hipercalorico";
+  else if(weightLoss || lowApp) tipo = "hipercalorico";
 
-  return {
-    tipo,
-    mucositis,
-    nausea,
-    lowApp,
-    risk: lowApp ? "alto" : "normal"
-  };
+  return {phase, mucositis, nausea, lowApp, weightLoss, tipo, risk, puntos};
 }
+
 
 function generateMenu(){
   const profile = computeClinicalProfile();
@@ -872,7 +881,6 @@ function lastWeightAndTrend(days=14){
   const changePct = ((last.w - past.w) / past.w) * 100;
   return {last:last.w, changePct};
 }
-
 function computeClinicalProfile(){
   const mucositis = document.getElementById("sxMucositis").checked;
   const nausea = document.getElementById("sxNausea").checked;
@@ -880,19 +888,26 @@ function computeClinicalProfile(){
   const phase = document.getElementById("phase").value;
 
   const {changePct} = lastWeightAndTrend(14);
-  const weightLoss = (changePct !== null && changePct <= -5); // >5% en ~2 semanas
+  const weightLoss = (changePct !== null && changePct <= -5);
 
-  // Selección de estrategia (prioridad clínica)
+  let puntos = 0;
+  if(nausea) puntos += 1;
+  if(lowApp) puntos += 1;
+  if(mucositis) puntos += 2;
+  if(weightLoss) puntos += 3;
+
+  let risk = "bajo";
+  if(puntos >= 3) risk = "alto";
+  else if(puntos >= 1) risk = "moderado";
+
   let tipo = "normal";
   if(mucositis) tipo = "mucositis";
   else if(nausea) tipo = "nauseas";
   else if(weightLoss || lowApp) tipo = "hipercalorico";
 
-  // Riesgo nutricional simple
-  const risk = (mucositis || nausea || weightLoss || lowApp) ? "alto" : "bajo";
-
-  return {phase, mucositis, nausea, lowApp, weightLoss, tipo, risk};
+  return {phase, mucositis, nausea, lowApp, weightLoss, tipo, risk, puntos};
 }
+
 function pickDifferent(list, previous){
   if(!list || list.length === 0) return "";
   if(list.length === 1) return list[0];
@@ -920,43 +935,36 @@ function actualizarRiesgoNutricional(){
   if(profile.weightLoss) motivos.push("pérdida de peso");
 
   if(profile.risk === "alto"){
-
-    box.className =
-      "mt-4 p-4 rounded-xl border bg-red-50 border-red-300";
-
-    title.className =
-      "font-bold text-red-800";
-
-    title.innerHTML =
-      "🔴 Riesgo nutricional alto";
-
+    box.className = "mt-4 p-4 rounded-xl border bg-red-50 border-red-300";
+    title.className = "font-bold text-red-800";
+    title.innerHTML = "🔴 Riesgo nutricional alto";
     reason.innerHTML =
-      "Factores detectados: " +
-      motivos.join(", ") +
-      ". Menú adaptado automáticamente.";
+      "Factores detectados: " + motivos.join(", ") +
+      ". Se recomienda vigilancia estrecha y consultar con el equipo sanitario si los síntomas persisten.";
   }
-  else{
 
-    box.className =
-      "mt-4 p-4 rounded-xl border bg-green-50 border-green-300";
-
-    title.className =
-      "font-bold text-green-800";
-
-    title.innerHTML =
-      "🟢 Riesgo nutricional bajo";
-
+  else if(profile.risk === "moderado"){
+    box.className = "mt-4 p-4 rounded-xl border bg-yellow-50 border-yellow-300";
+    title.className = "font-bold text-yellow-800";
+    title.innerHTML = "🟡 Riesgo nutricional moderado";
     reason.innerHTML =
-      "No se detectan factores de riesgo nutricional.";
+      "Factores detectados: " + motivos.join(", ") +
+      ". El menú se adapta automáticamente a los síntomas registrados.";
+  }
+
+  else{
+    box.className = "mt-4 p-4 rounded-xl border bg-green-50 border-green-300";
+    title.className = "font-bold text-green-800";
+    title.innerHTML = "🟢 Riesgo nutricional bajo";
+    reason.innerHTML = "No se detectan factores de riesgo nutricional.";
   }
 }
+
 function pickWeekly(list, used){
   if(!list || list.length === 0) return "";
 
-  // Opciones no usadas
   let options = list.filter(x => !used.includes(x));
 
-  // Si se acaban, reiniciar
   if(options.length === 0){
     used.length = 0;
     options = list;
