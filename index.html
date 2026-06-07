@@ -1,3 +1,4 @@
+
                 
  
              
@@ -653,7 +654,6 @@ function enviarNotificacion(titulo, mensaje){
     alert("Las notificaciones no están permitidas.");
   }
 }
-
 function probarNotificacion(){
   if (!("Notification" in window)){
     alert("Este dispositivo no soporta notificaciones.");
@@ -662,7 +662,10 @@ function probarNotificacion(){
 
   Notification.requestPermission().then(permission => {
     if(permission === "granted"){
-      enviarNotificacion("🔔 Prueba Mi Menú TPH", "Las notificaciones funcionan correctamente.");
+      enviarNotificacion(
+        "🔔 Prueba Mi Menú TPH",
+        "Las notificaciones funcionan correctamente."
+      );
     } else {
       alert("Permiso de notificaciones denegado.");
     }
@@ -685,7 +688,6 @@ if(data.breakfast && data.timeBreakfast === hhmm){
   enviarNotificacion("🍞 Desayuno", "Hora del desayuno.");
   ultimaMarca = marcaActual;
 }
-
 if(data.lunch && data.timeLunch === hhmm){
   enviarNotificacion("🍽️ Comida", "Hora de la comida.");
   ultimaMarca = marcaActual;
